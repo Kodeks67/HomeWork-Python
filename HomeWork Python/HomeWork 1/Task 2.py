@@ -4,6 +4,6 @@ def NumbaerLogs(number):
     print(f"Петр сделал журналов: {FirstNumbaer}, Катя сделала: {SecondNumber}, Сергей сделал: {FirstNumbaer}")
 
 
-number = int(input())
+number = int(input('Введите общее кол-во журналов было сделано: '))
 NumbaerLogs(number)
 
