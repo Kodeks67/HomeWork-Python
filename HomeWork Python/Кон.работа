@@ -1,0 +1,131 @@
+import json
+import os
+from datetime import datetime
+
+
+class Note:
+    def __init__(self, title, body):
+        self.id = None
+        self.title = title
+        self.body = body
+        self.created_at = None
+        self.updated_at = None
+
+    def __str__(self):
+        return f"ID: {self.id}\nTitle: {self.title}\nBody: {self.body}\nCreated at: {self.created_at}\nUpdated at: {self.updated_at}\n"
+
+
+class NotesApp:
+    def __init__(self, data_file="notes.json"):
+        self.data_file = data_file
+        self.notes = []
+        self.load_data()
+
+    def load_data(self):
+        if os.path.exists(self.data_file):
+            with open(self.data_file, "r") as file:
+                data = json.load(file)
+                for note_data in data:
+                    note = Note(note_data["title"], note_data["body"])
+                    note.id = note_data["id"]
+                    note.created_at = note_data["created_at"]
+                    note.updated_at = note_data["updated_at"]
+                    self.notes.append(note)
+
+    def save_data(self):
+        data = []
+        for note in self.notes:
+            data.append({
+                "id": note.id,
+                "title": note.title,
+                "body": note.body,
+                "created_at": note.created_at,
+                "updated_at": note.updated_at
+            })
+        with open(self.data_file, "w") as file:
+            json.dump(data, file)
+
+    def list_notes(self):
+        for note in self.notes:
+            print(str(note))
+
+    def add_note(self, title, body):
+        new_note = Note(title, body)
+        new_note.id = len(self.notes) + 1
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        new_note.created_at = timestamp
+        new_note.updated_at = timestamp
+        self.notes.append(new_note)
+        self.save_data()
+
+    def edit_note(self, note_id, title, body):
+        for note in self.notes:
+            if note.id == note_id:
+                note.title = title
+                note.body = body
+                note.updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                self.save_data()
+                return True
+        return False
+
+    def delete_note(self, note_id):
+        for note in self.notes:
+            if note.id == note_id:
+                self.notes.remove(note)
+                self.save_data()
+                return True
+        return False
+
+    def filter_notes_by_date(self, date):
+        filtered_notes = [note for note in self.notes if date in note.created_at]
+        return filtered_notes
+
+
+if __name__ == "__main__":
+    app = NotesApp()
+
+    while True:
+        print("Выберите действие:")
+        print("1. Показать все заметки")
+        print("2. Добавить заметку")
+        print("3. Редактировать заметку")
+        print("4. Удалить заметку")
+        print("5. Фильтровать заметки по дате")
+        print("6. Выход")
+
+        choice = input("Введите номер действия: ")
+
+        if choice == "1":
+            app.list_notes()
+        elif choice == "2":
+            title = input("Введите заголовок заметки: ")
+            body = input("Введите текст заметки: ")
+            app.add_note(title, body)
+            print("Заметка успешно добавлена.")
+        elif choice == "3":
+            note_id = int(input("Введите ID заметки для редактирования: "))
+            title = input("Введите новый заголовок заметки: ")
+            body = input("Введите новый текст заметки: ")
+            if app.edit_note(note_id, title, body):
+                print("Заметка успешно отредактирована.")
+            else:
+                print("Заметка с указанным ID не найдена.")
+        elif choice == "4":
+            note_id = int(input("Введите ID заметки для удаления: "))
+            if app.delete_note(note_id):
+                print("Заметка успешно удалена.")
+            else:
+                print("Заметка с указанным ID не найдена.")
+        elif choice == "5":
+            date = input("Введите дату (гггг-мм-дд): ")
+            filtered_notes = app.filter_notes_by_date(date)
+            if filtered_notes:
+                print("Найденные заметки:")
+                for note in filtered_notes:
+                    print(str(note))
+            else:
+                print("Заметок с указанной датой не найдено.")
+        elif choice == "6":
+            break
+        else:
+            print("Неверный выбор. Пожалуйста, выберите правильный номер действия.")
